@@ -35,6 +35,12 @@
 	"require-dev": {
 		"typo3/coding-standards": "*",
 		"friendsofphp/php-cs-fixer": "*",
-		"phpstan/phpstan": "*"
+		"phpstan/phpstan": "*",
+		"phpunit/phpunit": "^10"
+	},
+	"scripts": {
+		"test": [
+			"@php .Build/bin/phpunit --colors=always"
+		]
 	}
 }

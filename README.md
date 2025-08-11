@@ -31,3 +31,16 @@ By default, the extension uses a test site ID. To use your own site ID:
 ## Example
 
 ![Ki-Score Site ID configuration in TYPO3 Site Configuration](Documentation/Images/Settings-Site-ID.png)
+
+## Tests
+
+This extension ships with a minimal PHPUnit setup to help increase software quality.
+
+- Install dev dependencies:
+  ```bash
+  composer install
+  ```
+- Run the unit tests:
+  ```bash
+  composer test
+  ```
