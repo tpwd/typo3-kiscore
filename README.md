@@ -27,3 +27,7 @@ By default, the extension uses a test site ID. To use your own site ID:
 - Sends user agent, referer, and URL information to kiscore.de
 - Compatible with TYPO3 12 and 13
 - Minimal performance impact (tracking happens after the response is sent)
+
+## Example
+
+![Ki-Score Site ID configuration in TYPO3 Site Configuration](Documentation/Images/Settings-Site-ID.png)
