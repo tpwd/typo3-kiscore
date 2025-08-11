@@ -11,6 +11,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Tpwd\Kiscore\Constants;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Site\Entity\Site;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Middleware to track frontend requests and send data to kiscore.de
@@ -18,11 +19,6 @@ use TYPO3\CMS\Core\Site\Entity\Site;
 class KiscoreTrackingMiddleware implements MiddlewareInterface
 {
     protected RequestFactory $requestFactory;
-
-    public function __construct(RequestFactory $requestFactory)
-    {
-        $this->requestFactory = $requestFactory;
-    }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -40,6 +36,11 @@ class KiscoreTrackingMiddleware implements MiddlewareInterface
             return $response;
         }
 
+        // Do not track redirects
+        if ($response->getStatusCode() >= 300 && $response->getStatusCode() <= 399) {
+            return $response;
+        }
+
         // Get site ID from configuration or use a default
         $siteId = $site->getConfiguration()['kiscore_site_id'] ?? Constants::DEFAULT_SITE_ID;
 
@@ -50,40 +51,40 @@ class KiscoreTrackingMiddleware implements MiddlewareInterface
             'url' => (string)$request->getUri(),
         ];
 
-        // Send tracking data asynchronously
+        // Send tracking data directly with short timeouts to minimize impact
         $this->sendTrackingData($siteId, $trackingData);
 
         return $response;
     }
 
     /**
-     * Send tracking data to kiscore.de
+     * Send tracking data to kiscore.de directly (no shutdown function)
      *
      * @param string $siteId
      * @param array $trackingData
      */
     protected function sendTrackingData(string $siteId, array $trackingData): void
     {
-        // Use a shutdown function to send the request after the response has been sent
-        $requestFactory = $this->requestFactory;
-        $trackingUrl = 'https://kiscore.de/track/' . $siteId;
-        
-        register_shutdown_function(static function () use ($requestFactory, $trackingUrl, $trackingData) {
-            try {
-                $requestFactory->request(
-                    $trackingUrl,
-                    'POST',
-                    [
-                        'headers' => [
-                            'Content-Type' => 'application/json',
-                        ],
-                        'body' => json_encode($trackingData),
-                    ]
-                );
-            } catch (\Exception $e) {
-                // Silently fail to not affect the user experience
-            }
-        });
+        $requestFactory = GeneralUtility::makeInstance(RequestFactory::class);
+        $trackingUrl = Constants::KISCORE_TRACKING_ENDPOINT . rawurlencode($siteId);
+
+        try {
+            $requestFactory->request(
+                $trackingUrl,
+                'POST',
+                [
+                    // Use Guzzle's JSON option for encoding and headers
+                    'json' => $trackingData,
+                    // Keep impact minimal
+                    'timeout' => Constants::HTTP_TIMEOUT,
+                    'connect_timeout' => Constants::HTTP_CONNECT_TIMEOUT,
+                    'http_errors' => false,
+                    'allow_redirects' => false,
+                ]
+            );
+        } catch (\Throwable $e) {
+            // Silently fail to not affect the user experience
+        }
     }
 
     /**
@@ -94,6 +95,7 @@ class KiscoreTrackingMiddleware implements MiddlewareInterface
      */
     protected function isFrontendRequest(ServerRequestInterface $request): bool
     {
-        return $request->getAttribute('applicationType') === 'FE';
+        $applicationType = $request->getAttribute('applicationType');
+        return ($applicationType === 1);
     }
 }
