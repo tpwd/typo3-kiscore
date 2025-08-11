@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace Tpwd\Kiscore\Middleware;
 
+use DOMDocument;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Tpwd\Kiscore\Constants;
 use TYPO3\CMS\Core\Http\RequestFactory;
+use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use const LIBXML_NOERROR;
 
 /**
  * Middleware to track frontend requests and send data to kiscore.de
@@ -19,6 +22,10 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 class KiscoreTrackingMiddleware implements MiddlewareInterface
 {
     protected RequestFactory $requestFactory;
+
+    public function __construct(
+        private readonly PageRenderer $pageRenderer,
+    ) {}
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -49,6 +56,7 @@ class KiscoreTrackingMiddleware implements MiddlewareInterface
             'user_agent' => $request->getHeaderLine('User-Agent'),
             'referer' => $request->getHeaderLine('Referer'),
             'url' => (string)$request->getUri(),
+            'title' => $this->getPageTitle($request, $response),
         ];
 
         // Send tracking data directly with short timeouts to minimize impact
@@ -97,5 +105,24 @@ class KiscoreTrackingMiddleware implements MiddlewareInterface
     {
         $applicationType = $request->getAttribute('applicationType');
         return ($applicationType === 1);
+    }
+
+    public function getPageTitle(ServerRequestInterface $request, ResponseInterface $response): string
+    {
+        $controller = $request->getAttribute('frontend.controller');
+        if ($controller->isGeneratePage()) {
+            return $this->pageRenderer->getTitle() ?: '';
+        } else {
+            return $this->extractFromSource((string)$response->getBody());
+        }
+    }
+
+    public function extractFromSource(string $source): string
+    {
+        $document = new DOMDocument();
+        $document->loadHTML($source, LIBXML_NOERROR);
+        $titleElement = $document->getElementsByTagName('title')->item(0);
+
+        return $titleElement->textContent ?? '';
     }
 }

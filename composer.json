@@ -8,8 +8,10 @@
 	},
 	"require": {
 		"typo3/cms-core": "^12 || ^13",
-		"ext-pdo": "*"
-	},
+		"ext-pdo": "*",
+        "ext-dom": "*",
+        "ext-libxml": "*"
+    },
 	"autoload": {
 		"psr-4": {
 			"Tpwd\\Kiscore\\": "Classes"
