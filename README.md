@@ -5,7 +5,7 @@ TYPO3 extension to integrate kiscore.ai, AI bot detection and analysis.
 ## Installation
 
 ```bash
-composer require tpwd/kiscore
+composer require tpwd/typo3-kiscore
 ```
 
 ## Configuration

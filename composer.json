@@ -1,5 +1,5 @@
 {
-	"name": "tpwd/kiscore",
+	"name": "tpwd/typo3-kiscore",
 	"type": "typo3-cms-extension",
 	"description": "TYPO3 extension to integrate kiscore.ai, AI bot detection and analysis.",
 	"license": "GPL-2.0+",
