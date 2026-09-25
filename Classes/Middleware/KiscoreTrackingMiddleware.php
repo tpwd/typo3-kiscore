@@ -9,20 +9,20 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Tpwd\Kiscore\Constants;
+use Tpwd\Kiscore\Tracking\SiteTrackingSettings;
+use Tpwd\Kiscore\Tracking\TrackingPayload;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
- * Middleware to track frontend requests and send data to kiscore.de
+ * Middleware to track frontend requests and send data to kiscore.ai
  */
 class KiscoreTrackingMiddleware implements MiddlewareInterface
 {
-    protected RequestFactory $requestFactory;
-
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        // Process the request first to not delay the response
+        // Process the request first so tracking never changes the response
         $response = $handler->handle($request);
 
         // Only track frontend requests
@@ -41,40 +41,37 @@ class KiscoreTrackingMiddleware implements MiddlewareInterface
             return $response;
         }
 
-        // Get site ID from configuration or use a default
-        $siteId = $site->getConfiguration()['kiscore_site_id'] ?? Constants::DEFAULT_SITE_ID;
-
-        // Prepare tracking data
-        $trackingData = [
-            'user_agent' => $request->getHeaderLine('User-Agent'),
-            'referer' => $request->getHeaderLine('Referer'),
-            'url' => (string)$request->getUri(),
-        ];
+        // Without site ID and tracking secret the API rejects every request
+        $settings = SiteTrackingSettings::fromSiteConfiguration($site->getConfiguration());
+        if ($settings === null) {
+            return $response;
+        }
 
         // Send tracking data directly with short timeouts to minimize impact
-        $this->sendTrackingData($siteId, $trackingData);
+        $this->sendTrackingData($settings, TrackingPayload::fromRequest($request));
 
         return $response;
     }
 
     /**
-     * Send tracking data to kiscore.de directly (no shutdown function)
+     * Send tracking data to kiscore.ai directly (no shutdown function)
      *
-     * @param string $siteId
-     * @param array $trackingData
+     * @param array<string, string> $trackingData
      */
-    protected function sendTrackingData(string $siteId, array $trackingData): void
+    protected function sendTrackingData(SiteTrackingSettings $settings, array $trackingData): void
     {
         $requestFactory = GeneralUtility::makeInstance(RequestFactory::class);
-        $trackingUrl = Constants::KISCORE_TRACKING_ENDPOINT . rawurlencode($siteId);
 
         try {
             $requestFactory->request(
-                $trackingUrl,
+                $settings->trackingUrl(),
                 'POST',
                 [
                     // Use Guzzle's JSON option for encoding and headers
                     'json' => $trackingData,
+                    'headers' => [
+                        Constants::TRACKING_SECRET_HEADER => $settings->trackingSecret,
+                    ],
                     // Keep impact minimal
                     'timeout' => Constants::HTTP_TIMEOUT,
                     'connect_timeout' => Constants::HTTP_CONNECT_TIMEOUT,

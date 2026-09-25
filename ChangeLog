@@ -1,2 +1,7 @@
+Version 2.0.0, 25 September 2026
+[!!!][FEATURE] Send the tracking secret in X-Kiscore-Tracking-Secret; tracking stays off until site ID and secret are configured
+[!!!][TASK] Send tracking data to https://api.kiscore.ai/track/ and drop the default site ID
+[FEATURE] Send the client IP and the page path with its utm_* parameters, truncated to the API limits
+
 Version 1.0.0, 17 February 2026
 [FEATURE] Release of version 1.0.0

@@ -9,12 +9,6 @@ use Tpwd\Kiscore\Constants;
 
 class ConstantsTest extends TestCase
 {
-    public function testDefaultSiteIdIsNonEmptyString(): void
-    {
-        $this->assertIsString(Constants::DEFAULT_SITE_ID);
-        $this->assertNotSame('', Constants::DEFAULT_SITE_ID);
-    }
-
     public function testTrackingEndpointEndsWithSlash(): void
     {
         $this->assertIsString(Constants::KISCORE_TRACKING_ENDPOINT);

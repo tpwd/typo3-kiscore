@@ -2,24 +2,30 @@
 
 declare(strict_types=1);
 
-use Tpwd\Kiscore\Constants;
-
 defined('TYPO3') or die();
 
-// Add kiscore_site_id field to site configuration
+// Add Ki-Score fields to site configuration
 $GLOBALS['SiteConfiguration']['site']['columns']['kiscore_site_id'] = [
     'label' => 'Ki-Score Site ID',
-    'description' => 'The site ID for kiscore.de tracking',
+    'description' => 'The site ID shown under Traffic > Integration in the Ki-Score dashboard',
     'config' => [
         'type' => 'input',
         'eval' => 'trim',
-        'default' => Constants::DEFAULT_SITE_ID,
+    ],
+];
+
+$GLOBALS['SiteConfiguration']['site']['columns']['kiscore_tracking_secret'] = [
+    'label' => 'Ki-Score Tracking Secret',
+    'description' => 'The tracking secret shown under Traffic > Integration in the Ki-Score dashboard. Without it no requests are tracked.',
+    'config' => [
+        'type' => 'input',
+        'eval' => 'trim',
     ],
 ];
 
 // Add to showitem list
 $GLOBALS['SiteConfiguration']['site']['types']['0']['showitem'] = str_replace(
     'base,',
-    'base, kiscore_site_id,',
+    'base, kiscore_site_id, kiscore_tracking_secret,',
     $GLOBALS['SiteConfiguration']['site']['types']['0']['showitem']
 );
