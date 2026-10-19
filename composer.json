@@ -7,7 +7,8 @@
 		"issues": "https://github.com/tpwd/typo3-kiscore/issues"
 	},
 	"require": {
-		"typo3/cms-core": "^12 || ^13",
+		"typo3/cms-core": "^12 || ^13 || ^14",
+		"typo3/cms-frontend": "^12 || ^13 || ^14",
 		"ext-pdo": "*"
 	},
 	"autoload": {
