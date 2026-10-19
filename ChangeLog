@@ -1,3 +1,8 @@
+Version 2.1.0, 19 October 2026
+[FEATURE] Read site ID and tracking secret from one connection key ("Ki-Score Connection Key"); the separate fields keep working
+[FEATURE] Support TYPO3 14
+[BUGFIX] Order the tracking middleware after typo3/cms-frontend/prepare-tsfe-rendering, the identifier the core actually uses
+
 Version 2.0.0, 25 September 2026
 [!!!][FEATURE] Send the tracking secret in X-Kiscore-Tracking-Secret; tracking stays off until site ID and secret are configured
 [!!!][TASK] Send tracking data to https://api.kiscore.ai/track/ and drop the default site ID
