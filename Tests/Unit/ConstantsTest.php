@@ -26,4 +26,14 @@ class ConstantsTest extends TestCase
         // connect timeout should be less or equal than total timeout
         $this->assertLessThanOrEqual(Constants::HTTP_TIMEOUT, Constants::HTTP_CONNECT_TIMEOUT);
     }
+
+    public function testUserAgentNamesTheExtensionAndItsVersion(): void
+    {
+        $_EXTKEY = 'kiscore';
+        $EM_CONF = [];
+        require __DIR__ . '/../../ext_emconf.php';
+
+        // KIscore marks the TYPO3 card as connected by this User-Agent
+        $this->assertSame('KIscore-TYPO3/' . $EM_CONF[$_EXTKEY]['version'], Constants::USER_AGENT);
+    }
 }

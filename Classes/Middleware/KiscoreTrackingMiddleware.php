@@ -71,6 +71,7 @@ class KiscoreTrackingMiddleware implements MiddlewareInterface
                     'json' => $trackingData,
                     'headers' => [
                         Constants::TRACKING_SECRET_HEADER => $settings->trackingSecret,
+                        'User-Agent' => Constants::USER_AGENT,
                     ],
                     // Keep impact minimal
                     'timeout' => Constants::HTTP_TIMEOUT,
