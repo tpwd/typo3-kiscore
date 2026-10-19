@@ -11,25 +11,27 @@ composer require tpwd/typo3-kiscore
 ## Configuration
 
 The extension tracks all frontend requests and sends them to kiscore.ai. It
-only sends data once both values below are set; the Ki-Score API rejects
+only sends data once a connection key is set; the Ki-Score API rejects
 requests without a matching tracking secret.
 
-### Site ID and tracking secret
+### Connection key
 
-1. In the Ki-Score dashboard, open Traffic > Integration and copy the Site ID
-   and the tracking secret
+1. In the Ki-Score dashboard, open Settings > Traffic tracking > TYPO3 and
+   copy the connection key
 2. Go to the TYPO3 Site Configuration module and edit your site configuration
-3. Enter both values in the fields "Ki-Score Site ID" and
-   "Ki-Score Tracking Secret"
+3. Paste the key into the field "Ki-Score Connection Key"
 4. Save the configuration
 
-To keep the secret out of `config/sites/*/config.yaml`, reference an
+To keep the key out of `config/sites/*/config.yaml`, reference an
 environment variable instead:
 
 ```yaml
-kiscore_site_id: '%env(KISCORE_SITE_ID)%'
-kiscore_tracking_secret: '%env(KISCORE_TRACKING_SECRET)%'
+kiscore_connection_key: '%env(KISCORE_CONNECTION_KEY)%'
 ```
+
+The separate fields "Ki-Score Site ID" and "Ki-Score Tracking Secret" of
+version 2.0 (`kiscore_site_id`, `kiscore_tracking_secret`) keep working when
+no connection key is set.
 
 ## Features
 
@@ -38,7 +40,7 @@ kiscore_tracking_secret: '%env(KISCORE_TRACKING_SECRET)%'
   parameters to kiscore.ai; other query parameters stay on your server, as
   they can hold tokens or email addresses
 - Recognises visits referred by AI assistants via referer or `utm_source`
-- Compatible with TYPO3 12 and 13
+- Compatible with TYPO3 12, 13 and 14
 - Minimal performance impact (short timeouts, errors never reach the visitor)
 
 ## Example
