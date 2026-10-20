@@ -4,7 +4,16 @@ declare(strict_types=1);
 
 defined('TYPO3') or die();
 
-// Add Ki-Score fields to site configuration
+// Show one connection key. Keep the legacy fields registered so existing
+// site configurations remain readable when saved again.
+$GLOBALS['SiteConfiguration']['site']['columns']['kiscore_connection_key'] = [
+    'label' => 'LLL:EXT:kiscore/Resources/Private/Language/locallang.xlf:connectionKey.label',
+    'description' => 'LLL:EXT:kiscore/Resources/Private/Language/locallang.xlf:connectionKey.description',
+    'config' => [
+        'type' => 'password',
+        'hashed' => false,
+    ],
+];
 $GLOBALS['SiteConfiguration']['site']['columns']['kiscore_site_id'] = [
     'label' => 'Ki-Score Site ID',
     'description' => 'The site ID shown under Traffic > Integration in the Ki-Score dashboard',
@@ -26,6 +35,6 @@ $GLOBALS['SiteConfiguration']['site']['columns']['kiscore_tracking_secret'] = [
 // Add to showitem list
 $GLOBALS['SiteConfiguration']['site']['types']['0']['showitem'] = str_replace(
     'base,',
-    'base, kiscore_site_id, kiscore_tracking_secret,',
+    'base, kiscore_connection_key,',
     $GLOBALS['SiteConfiguration']['site']['types']['0']['showitem']
 );

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.0">
+  <file source-language="en" datatype="plaintext" original="messages">
+    <body>
+      <trans-unit id="connectionKey.label"><source>KIscore connection key</source></trans-unit>
+      <trans-unit id="connectionKey.description"><source>Paste the connection key from the KIscore dashboard, or use %env(KISCORE_CONNECTION_KEY)% to keep it out of versioned site configuration.</source></trans-unit>
+    </body>
+  </file>
+</xliff>

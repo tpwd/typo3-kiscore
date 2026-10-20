@@ -9,6 +9,30 @@ use Tpwd\Kiscore\Tracking\SiteTrackingSettings;
 
 class SiteTrackingSettingsTest extends TestCase
 {
+    public function testReadsBothCredentialsFromOneConnectionKey(): void
+    {
+        $settings = SiteTrackingSettings::fromSiteConfiguration([
+            'kiscore_connection_key' => ' new-site.new-secret ',
+            'kiscore_site_id' => 'old-site',
+            'kiscore_tracking_secret' => 'old-secret',
+        ]);
+
+        self::assertNotNull($settings);
+        self::assertSame('new-site', $settings->siteId);
+        self::assertSame('new-secret', $settings->trackingSecret);
+    }
+
+    public function testRejectsMalformedKeysWithoutUsingOldCredentials(): void
+    {
+        foreach (['missing-separator', '.secret', 'site.', 'site.secret.extra', 'site id.secret', '%env(MISSING_KEY)%'] as $key) {
+            self::assertNull(SiteTrackingSettings::fromSiteConfiguration([
+                'kiscore_connection_key' => $key,
+                'kiscore_site_id' => 'old-site',
+                'kiscore_tracking_secret' => 'old-secret',
+            ]));
+        }
+    }
+
     public function testReadsSiteIdAndSecretFromTheSiteConfiguration(): void
     {
         $settings = SiteTrackingSettings::fromSiteConfiguration([

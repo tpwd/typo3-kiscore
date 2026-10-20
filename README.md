@@ -10,26 +10,26 @@ composer require tpwd/typo3-kiscore
 
 ## Configuration
 
-The extension tracks all frontend requests and sends them to kiscore.ai. It
-only sends data once both values below are set; the Ki-Score API rejects
-requests without a matching tracking secret.
+Requires extension 2.1.0 or later. In the KIscore dashboard, copy the
+connection key for your website. Edit the site's configuration in TYPO3, paste
+it into **KIscore connection key**, and save.
 
-### Site ID and tracking secret
+The extension splits the key internally and authenticates tracking requests.
+Missing or malformed keys send no data. Existing installations with separate
+`kiscore_site_id` and `kiscore_tracking_secret` remain supported; a supplied
+connection key takes precedence.
 
-1. In the Ki-Score dashboard, open Traffic > Integration and copy the Site ID
-   and the tracking secret
-2. Go to the TYPO3 Site Configuration module and edit your site configuration
-3. Enter both values in the fields "Ki-Score Site ID" and
-   "Ki-Score Tracking Secret"
-4. Save the configuration
-
-To keep the secret out of `config/sites/*/config.yaml`, reference an
-environment variable instead:
+Keep the key out of versioned `config/sites/*/config.yaml` by setting the private
+hosting variable `KISCORE_CONNECTION_KEY` and entering
+`%env(KISCORE_CONNECTION_KEY)%` in the connection key field:
 
 ```yaml
-kiscore_site_id: '%env(KISCORE_SITE_ID)%'
-kiscore_tracking_secret: '%env(KISCORE_TRACKING_SECRET)%'
+kiscore_connection_key: '%env(KISCORE_CONNECTION_KEY)%'
 ```
+
+The variable is available to the TYPO3 PHP process and is scoped to this site
+by the YAML reference. Multiple sites may reference different variable names.
+After changing the environment, restart PHP and flush TYPO3's configuration cache.
 
 ## Features
 
@@ -40,10 +40,6 @@ kiscore_tracking_secret: '%env(KISCORE_TRACKING_SECRET)%'
 - Recognises visits referred by AI assistants via referer or `utm_source`
 - Compatible with TYPO3 12 and 13
 - Minimal performance impact (short timeouts, errors never reach the visitor)
-
-## Example
-
-![Ki-Score Site ID configuration in TYPO3 Site Configuration](Documentation/Images/Settings-Site-ID.png)
 
 ## Tests
 
