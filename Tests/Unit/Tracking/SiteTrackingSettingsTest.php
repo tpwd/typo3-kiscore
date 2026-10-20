@@ -59,6 +59,40 @@ class SiteTrackingSettingsTest extends TestCase
         self::assertNull(SiteTrackingSettings::fromSiteConfiguration(['kiscore_tracking_secret' => 's3cr3t']));
     }
 
+    public function testReadsSiteIdAndSecretFromTheConnectionKey(): void
+    {
+        $settings = SiteTrackingSettings::fromSiteConfiguration([
+            'kiscore_connection_key' => ' 6f1c2d3e.s3cr3t ',
+        ]);
+
+        self::assertNotNull($settings);
+        self::assertSame('6f1c2d3e', $settings->siteId);
+        self::assertSame('s3cr3t', $settings->trackingSecret);
+    }
+
+    public function testPrefersTheConnectionKeyOverTheSeparateFields(): void
+    {
+        $settings = SiteTrackingSettings::fromSiteConfiguration([
+            'kiscore_connection_key' => 'new-site.new-secret',
+            'kiscore_site_id' => 'old-site',
+            'kiscore_tracking_secret' => 'old-secret',
+        ]);
+
+        self::assertSame(['new-site', 'new-secret'], [$settings?->siteId, $settings?->trackingSecret]);
+    }
+
+    public function testRejectsMalformedKeysEvenWhenLegacyCredentialsExist(): void
+    {
+        $settings = SiteTrackingSettings::fromSiteConfiguration([
+            'kiscore_connection_key' => 'only-the-site-id',
+            'kiscore_site_id' => 'old-site',
+            'kiscore_tracking_secret' => 'old-secret',
+        ]);
+
+        self::assertNull($settings);
+        self::assertNull(SiteTrackingSettings::fromSiteConfiguration(['kiscore_connection_key' => 'site.secret.extra']));
+    }
+
     public function testBuildsTheTrackingUrlOnTheKiscoreApi(): void
     {
         $settings = SiteTrackingSettings::fromSiteConfiguration([

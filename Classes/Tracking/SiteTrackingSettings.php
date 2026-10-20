@@ -7,7 +7,9 @@ namespace Tpwd\Kiscore\Tracking;
 use Tpwd\Kiscore\Constants;
 
 /**
- * Site ID and tracking secret of one TYPO3 site
+ * Site ID and tracking secret of one TYPO3 site. The Ki-Score dashboard shows
+ * both as one connection key "<site-id>.<secret>"; the separate fields of
+ * version 2.0 keep working.
  */
 final class SiteTrackingSettings
 {

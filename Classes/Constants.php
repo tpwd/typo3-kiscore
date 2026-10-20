@@ -20,6 +20,12 @@ class Constants
     public const TRACKING_SECRET_HEADER = 'X-Kiscore-Tracking-Secret';
 
     /**
+     * User-Agent of the reports; KIscore marks the TYPO3 integration as
+     * connected by it. Keep the version in sync with ext_emconf.php.
+     */
+    public const USER_AGENT = 'KIscore-TYPO3/2.1.0';
+
+    /**
      * HTTP client overall request timeout in seconds
      */
     public const HTTP_TIMEOUT = 1.0;

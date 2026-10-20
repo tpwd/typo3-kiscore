@@ -38,7 +38,7 @@ After changing the environment, restart PHP and flush TYPO3's configuration cach
   parameters to kiscore.ai; other query parameters stay on your server, as
   they can hold tokens or email addresses
 - Recognises visits referred by AI assistants via referer or `utm_source`
-- Compatible with TYPO3 12 and 13
+- Compatible with TYPO3 12, 13 and 14
 - Minimal performance impact (short timeouts, errors never reach the visitor)
 
 ## Tests

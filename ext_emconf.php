@@ -10,7 +10,7 @@ $EM_CONF['kiscore'] = [
     'version' => '2.1.0',
     'constraints' => [
         'depends' => [
-            'typo3' => '12.0.0-13.99.99',
+            'typo3' => '12.0.0-14.99.99',
             'php' => '8.1.0-0.0.0',
         ],
         'conflicts' => [],
