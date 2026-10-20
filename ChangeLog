@@ -1,4 +1,4 @@
-Version 2.1.0, unreleased
+Version 2.1.0, 20 October 2026
 [FEATURE] Read site ID and tracking secret from one connection key ("Ki-Score Connection Key"); the separate fields keep working
 [FEATURE] Show only one masked connection-key field, with English and German labels
 [BUGFIX] Reject malformed connection keys without silently using old credentials
