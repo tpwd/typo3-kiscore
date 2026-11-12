@@ -26,7 +26,7 @@ final class SiteTrackingSettings
      */
     public static function fromSiteConfiguration(array $configuration): ?self
     {
-        $connectionKey = trim((string)($configuration['kiscore_connection_key'] ?? ''));
+        $connectionKey = self::text($configuration['kiscore_connection_key'] ?? '');
         if ($connectionKey !== '') {
             if (!preg_match('/^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)$/D', $connectionKey, $parts)) {
                 return null;
@@ -34,14 +34,22 @@ final class SiteTrackingSettings
             return new self($parts[1], $parts[2]);
         }
 
-        $siteId = trim((string)($configuration['kiscore_site_id'] ?? ''));
-        $trackingSecret = trim((string)($configuration['kiscore_tracking_secret'] ?? ''));
+        $siteId = self::text($configuration['kiscore_site_id'] ?? '');
+        $trackingSecret = self::text($configuration['kiscore_tracking_secret'] ?? '');
 
         if ($siteId === '' || $trackingSecret === '') {
             return null;
         }
 
         return new self($siteId, $trackingSecret);
+    }
+
+    /**
+     * A hand-edited site configuration can hold a list where text belongs
+     */
+    private static function text(mixed $value): string
+    {
+        return is_scalar($value) ? trim((string)$value) : '';
     }
 
     public function trackingUrl(): string

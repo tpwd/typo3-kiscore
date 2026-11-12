@@ -47,7 +47,22 @@ class KiscoreTrackingMiddlewareTest extends TestCase
                 : new RequestFactory();
             GeneralUtility::addInstance(RequestFactory::class, $factory);
 
-            self::assertSame($response, (new KiscoreTrackingMiddleware())->process($request, $handler));
+            $middleware = new class () extends KiscoreTrackingMiddleware {
+                /** @var list<callable> */
+                public array $deferred = [];
+
+                protected function afterResponse(callable $report): void
+                {
+                    $this->deferred[] = $report;
+                }
+            };
+
+            // The page is returned before anything is sent to KIscore
+            self::assertSame($response, $middleware->process($request, $handler));
+            self::assertCount(0, $history);
+            self::assertCount(1, $middleware->deferred);
+
+            ($middleware->deferred[0])();
             self::assertCount(1, $history);
             self::assertSame('https://api.kiscore.ai/track/test-site', (string)$history[0]['request']->getUri());
             self::assertSame('test-secret', $history[0]['request']->getHeaderLine('X-Kiscore-Tracking-Secret'));
@@ -62,5 +77,43 @@ class KiscoreTrackingMiddlewareTest extends TestCase
                 $GLOBALS['TYPO3_CONF_VARS']['HTTP'] = $previousHttp;
             }
         }
+    }
+
+    public function testARequestThatIsNoPageViewIsNotReported(): void
+    {
+        $site = new Site('example', 1, [
+            'base' => 'https://example.com/',
+            'kiscore_connection_key' => 'test-site.test-secret',
+        ]);
+        $request = (new ServerRequest('https://example.com/kontakt', 'POST'))
+            ->withAttribute('site', $site)
+            ->withAttribute('applicationType', 1);
+        $response = new Response();
+        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler->method('handle')->willReturn($response);
+        $middleware = new class () extends KiscoreTrackingMiddleware {
+            public int $deferred = 0;
+
+            protected function afterResponse(callable $report): void
+            {
+                $this->deferred++;
+            }
+        };
+
+        self::assertSame($response, $middleware->process($request, $handler));
+        self::assertSame(0, $middleware->deferred);
+    }
+
+    public function testABrokenSiteConfigurationNeverBreaksThePage(): void
+    {
+        $site = new Site('example', 1, ['base' => 'https://example.com/', 'kiscore_connection_key' => ['not', 'a', 'string']]);
+        $request = (new ServerRequest('https://example.com/', 'GET'))
+            ->withAttribute('site', $site)
+            ->withAttribute('applicationType', 1);
+        $response = new Response();
+        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler->method('handle')->willReturn($response);
+
+        self::assertSame($response, (new KiscoreTrackingMiddleware())->process($request, $handler));
     }
 }

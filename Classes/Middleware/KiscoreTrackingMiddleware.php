@@ -9,8 +9,10 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Tpwd\Kiscore\Constants;
+use Tpwd\Kiscore\Tracking\PageView;
 use Tpwd\Kiscore\Tracking\SiteTrackingSettings;
 use Tpwd\Kiscore\Tracking\TrackingPayload;
+use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -25,36 +27,84 @@ class KiscoreTrackingMiddleware implements MiddlewareInterface
         // Process the request first so tracking never changes the response
         $response = $handler->handle($request);
 
-        // Only track frontend requests
-        if (!$this->isFrontendRequest($request)) {
-            return $response;
+        try {
+            $this->report($request, $response);
+        } catch (\Throwable $e) {
+            // Tracking must never break the page
         }
 
-        // Get site from request
+        return $response;
+    }
+
+    protected function report(ServerRequestInterface $request, ResponseInterface $response): void
+    {
+        if (!$this->isFrontendRequest($request)) {
+            return;
+        }
+
         $site = $request->getAttribute('site');
         if (!$site instanceof Site) {
-            return $response;
+            return;
         }
 
-        // Do not track redirects
-        if ($response->getStatusCode() >= 300 && $response->getStatusCode() <= 399) {
-            return $response;
+        // Only pages someone opened: no form submits, AJAX, prefetches,
+        // redirects or error pages
+        if (!PageView::isReportable($request, $response) || $this->isBackendPreview()) {
+            return;
         }
 
         // Without site ID and tracking secret the API rejects every request
         $settings = SiteTrackingSettings::fromSiteConfiguration($site->getConfiguration());
         if ($settings === null) {
-            return $response;
+            return;
         }
 
-        // Send tracking data directly with short timeouts to minimize impact
-        $this->sendTrackingData($settings, TrackingPayload::fromRequest($request));
-
-        return $response;
+        $payload = TrackingPayload::fromRequest($request);
+        $this->afterResponse(function () use ($settings, $payload): void {
+            $this->sendTrackingData($settings, $payload);
+        });
     }
 
     /**
-     * Send tracking data to kiscore.ai directly (no shutdown function)
+     * Runs the report once the visitor has the page. PHP-FPM and LiteSpeed
+     * close the connection first; elsewhere the output is flushed, so the
+     * browser already has the complete page while the report is sent.
+     */
+    protected function afterResponse(callable $report): void
+    {
+        register_shutdown_function(static function () use ($report): void {
+            try {
+                if (function_exists('fastcgi_finish_request')) {
+                    fastcgi_finish_request();
+                } elseif (function_exists('litespeed_finish_request')) {
+                    litespeed_finish_request();
+                } else {
+                    while (ob_get_level() > 0) {
+                        ob_end_flush();
+                    }
+                    flush();
+                }
+                $report();
+            } catch (\Throwable $e) {
+                // Nothing left to protect but the error log
+            }
+        });
+    }
+
+    /**
+     * An editor previewing pages is not a visitor
+     */
+    protected function isBackendPreview(): bool
+    {
+        try {
+            return (bool)GeneralUtility::makeInstance(Context::class)->getPropertyFromAspect('backend.user', 'isLoggedIn', false);
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Send tracking data to kiscore.ai with short timeouts
      *
      * @param array<string, string> $trackingData
      */

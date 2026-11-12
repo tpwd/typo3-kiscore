@@ -1,3 +1,8 @@
+Unreleased
+[BUGFIX] Send the report after the page is delivered instead of before; a slow KIscore API no longer delays every page
+[BUGFIX] Report page views only: no form submits, HEAD or OPTIONS requests, AJAX and page-type requests, prefetches, error pages or backend previews
+[BUGFIX] Keep an unexpected error while preparing the report away from the visitor
+
 Version 2.1.0, 20 October 2026
 [FEATURE] Read site ID and tracking secret from one connection key ("Ki-Score Connection Key"); the separate fields keep working
 [FEATURE] Show only one masked connection-key field, with English and German labels

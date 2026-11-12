@@ -33,13 +33,15 @@ After changing the environment, restart PHP and flush TYPO3's configuration cach
 
 ## Features
 
-- Tracks all frontend requests (including cached pages)
+- Reports every page a visitor or crawler opens, including pages from the TYPO3 page cache. Form submits, AJAX and page-type requests, prefetches, redirects, error pages and backend previews are not reported
 - Sends user agent, referer, client IP and the page path with its `utm_*`
   parameters to kiscore.ai; other query parameters stay on your server, as
   they can hold tokens or email addresses
 - Recognises visits referred by AI assistants via referer or `utm_source`
 - Compatible with TYPO3 12, 13 and 14
-- Minimal performance impact (short timeouts, errors never reach the visitor)
+- The page is delivered first: the report is sent after the response (PHP-FPM and LiteSpeed close the connection before it), with short timeouts, and errors never reach the visitor
+- Behind a reverse proxy, load balancer or CDN, set TYPO3's `reverseProxyIP` (Install Tool, `[SYS][reverseProxyIP]`). Otherwise every visitor is reported with the proxy's address and visits from AI assistants collapse into one per day
+- Pages served by a cache in front of TYPO3 (Varnish, nginx, a CDN or EXT:staticfilecache) never reach the extension and are not reported. Exclude AI crawlers from that cache if you need their visits
 
 ## Tests
 
