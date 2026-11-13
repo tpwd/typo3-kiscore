@@ -23,7 +23,7 @@ class Constants
      * User-Agent of the reports; KIscore marks the TYPO3 integration as
      * connected by it. Keep the version in sync with ext_emconf.php.
      */
-    public const USER_AGENT = 'KIscore-TYPO3/2.1.0';
+    public const USER_AGENT = 'KIscore-TYPO3/2.1.1';
 
     /**
      * HTTP client overall request timeout in seconds

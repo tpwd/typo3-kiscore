@@ -66,7 +66,7 @@ class KiscoreTrackingMiddlewareTest extends TestCase
             self::assertCount(1, $history);
             self::assertSame('https://api.kiscore.ai/track/test-site', (string)$history[0]['request']->getUri());
             self::assertSame('test-secret', $history[0]['request']->getHeaderLine('X-Kiscore-Tracking-Secret'));
-            self::assertSame('KIscore-TYPO3/2.1.0', $history[0]['request']->getHeaderLine('User-Agent'));
+            self::assertSame('KIscore-TYPO3/2.1.1', $history[0]['request']->getHeaderLine('User-Agent'));
             $payload = json_decode((string)$history[0]['request']->getBody(), true, 512, JSON_THROW_ON_ERROR);
             self::assertSame('/?utm_source=chatgpt.com', $payload['url']);
             self::assertFalse($history[0]['options']['allow_redirects']);
